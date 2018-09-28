@@ -1,0 +1,16 @@
+StartDateWithTimStamp=`date`;sleep 3;
+EndDateWithTimeStamp=`date`
+
+JobStartDate=$(date -d "${StartDateWithTimStamp}" +"%m-%d-%Y")
+
+JobStartTimeInSec=$(date -d "${StartDateWithTimStame}" +"%s");
+JobEndTimeInSec=$(date -d "${EndDateWithTimeStamp}" +"%s");
+
+JobElapsecdTime=`expr $(expr $(expr $( expr $(date -d "${EndDateWithTimeStamp}" +"%s") - $(date -d "${StartDateWithTimStame}" +"%s"))) / 60) / 60`
+
+echo "Job Start Date with time stamo="$StartDateWithTimStamp
+echo "Job End Date with time stamo="$EndDateWithTimeStamp
+
+echo "JobStartTimeInSec="$JobStartTimeInSec
+echo "JobEndTimeInSec="$JobEndTimeInSec
+echo "Job Elapsed Time="$JobElapsecdTime
