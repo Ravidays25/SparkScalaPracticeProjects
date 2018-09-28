@@ -1,0 +1,106 @@
+WITH glp_t AS(
+select done.current_qtr,done.quarter_start_date,done.quarter_end_date,
+done.start_date,--glp_t.start_date
+done.end_date,--glp_t.end_date
+done.fiscal_quarter_name,
+done.glp_baao_fiscal_period,
+done.wk1,done.wk2,done.wk3,done.wk4,done.wk5_0,done.wk5,done.wk6,done.wk7,done.wk8,done.wk9_1,done.wk9,
+done.wk10,done.wk11,done.wk12,done.wk13
+from (
+select final.current_qtr,final.quarter_start_date,final.quarter_end_date,
+final.fiscal_quarter_name,
+final.start_date,
+final.end_date,
+final.glp_baao_fiscal_period,
+final.w1 wk1,final.w2 wk2,final.w3 wk3,final.w4 wk4,
+case when final.w5_0 != '1900-01-01' then final.w5_0 else final.w5
+end wk5_0,
+case when final.w5_0 != '1900-01-01' then final.w5 
+end wk5,
+final.w6 wk6,final.w7 wk7,final.w8 wk8,
+case when final.w9_1 != '1900-01-01' then final.w9_1 else final.w9
+end wk9_1,
+case when final.w9_1 != '1900-01-01' then final.w9 
+end wk9,
+final.w10 wk10,final.w11 wk11,final.w12 wk12,
+case when final.w13 != '1900-01-01' then final.w13 
+end wk13
+from(
+select test2.current_qtr,
+test2.start_date,
+test2.end_date,
+test2.fiscal_quarter_name,
+test2.glp_baao_fiscal_period,
+test2.quarter_start_date,
+test2.quarter_end_date,
+COLLECT_SET(test2.wk1)[0] w1,
+COLLECT_SET(test2.wk2)[0] w2,
+COLLECT_SET(test2.wk3)[0] w3,
+COLLECT_SET(test2.wk4)[0] w4,
+COLLECT_LIST(test2.wk5)[0] w5_0,
+COLLECT_SET(test2.wk1)[1] w5,
+COLLECT_SET(test2.wk2)[1] w6,
+COLLECT_SET(test2.wk3)[1] w7,
+COLLECT_SET(test2.wk4)[1] w8,
+COLLECT_LIST(test2.wk5)[1] w9_1,
+COLLECT_SET(test2.wk1)[2] w9,
+COLLECT_SET(test2.wk2)[2] w10,
+COLLECT_SET(test2.wk3)[2] w11,
+COLLECT_SET(test2.wk4)[2] w12,
+COLLECT_LIST(test2.wk5)[2] w13
+from(
+select test.current_qtr current_qtr,
+test.fiscal_quarter_name,
+test.glp_baao_fiscal_period,
+test.quarter_start_date,
+test.start_date,
+test.end_date,
+test.quarter_end_date,
+date_add(test.start_date,7) wk1,
+date_add(test.start_date,7*2) wk2,
+date_add(test.start_date,7*3) wk3,
+case 
+    when test.weeks_count_per_month=4 then date_sub(date_add(test.start_date,7*4),1)
+    when test.weeks_count_per_month=5 then date_add(test.start_date,7*4)
+end wk4,
+case 
+    when test.weeks_count_per_month=5 then date_sub(date_add(test.start_date,7*5),1) else '1900-01-01'
+    
+end wk5
+from (
+select
+case 
+    when entered_period_name in('MAR') then (datediff(end_date,start_date)+2)/7
+    when entered_period_name not in('MAR') then (datediff(end_date,start_date)+1)/7
+end weeks_count_per_month,
+ CONCAT (SUBSTR (current_qtr, 0, 4),SUBSTR (current_qtr, 7, 2)) AS fiscal_quarter_name,
+ CONCAT (CONCAT(SUBSTR (current_qtr, 3, 2),SUBSTR (current_qtr, 7, 2)),SUBSTR (current_qtr, 0, 2)) AS glp_baao_fiscal_period,
+entered_period_name,period_year,period_num,start_date,end_date,quarter_num,current_qtr,quarter_start_date,quarter_end_date from csclib.gl_periods_d 
+--where period_year in(2019) and quarter_num in(1)
+--where period_year in(2016) and quarter_num in(3)
+ where period_set_name = 'Fiscal Year'
+                   AND period_year='2019'
+                   AND quarter_num=1
+order by period_num
+) test
+)test2
+group by current_qtr,quarter_start_date,quarter_end_date,fiscal_quarter_name,glp_baao_fiscal_period,start_date,end_date
+)final
+)done
+)
+
+select 
+case when res.history_creation_date between glp_t.start_date and glp_t.wk1  then res.demand_qty   end wk1_demand_qty,
+case when res.history_creation_date between glp_t.wk1 and glp_t.wk2  then res.demand_qty end wk2_demand_qty,
+case when res.history_creation_date between glp_t.wk2 and glp_t.wk3  then res.demand_qty end wk3_demand_qty,
+case when res.history_creation_date between glp_t.wk3 and glp_t.wk4  then res.demand_qty end wk4_demand_qty,
+case when res.history_creation_date between glp_t.wk4 and COALESCE(glp_t.wk5_0,  then res.demand_qty end wk4_demand_qty,
+from supplychain_baao.gsm_baao_item_requests req,
+glp_t glp_t,
+supplychain_baao.gsm_baao_item_responses_curr_and_hist res
+where req.baao_fiscal_period=glp_t.glp_baao_fiscal_period
+--and req.request_id=res.request_id-
+--and req.award_status in('Incomplete','Award Eligible','Awarded')
+and req.item_number='51-101139-01' 
+and req.cost_type='FIRM'
+and req.request_id=674246
