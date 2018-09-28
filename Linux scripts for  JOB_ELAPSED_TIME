@@ -1,6 +1,5 @@
 #!/bin/bash -x
 
-JobName=Populate_AGL_NPI_PROJECT_D.hql
 StartDateWithTimStamp=`date`
 JobRefreshDate=$(date -d "${StartDateWithTimStamp}" +"%m-%d-%Y")
 JobRefreshStartTime=$(date -d "${StartDateWithTimStamp}" +"%T")
@@ -47,4 +46,5 @@ echo "Failure"
 return $exitcode
 
 fi
-
+echo "Job staus="$JobStatus
+hive  -e "INSERT INTO TABLE CSCLIBRARY.CSCLIBRARY_TIDAL_JOB_STATUS VALUES ('Populate_AGL_NPI_PROJECT_D.hql','$JobRefreshDate','$JobRefreshStartTime','$JobRefreshEndTime','$JobElapsecdTime','$JobStatus')";
