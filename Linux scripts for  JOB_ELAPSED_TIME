@@ -1,16 +1,50 @@
-StartDateWithTimStamp=`date`;sleep 3;
-EndDateWithTimeStamp=`date`
+#!/bin/bash -x
 
-JobStartDate=$(date -d "${StartDateWithTimStamp}" +"%m-%d-%Y")
+JobName=Populate_AGL_NPI_PROJECT_D.hql
+StartDateWithTimStamp=`date`
+JobRefreshDate=$(date -d "${StartDateWithTimStamp}" +"%m-%d-%Y")
+JobRefreshStartTime=$(date -d "${StartDateWithTimStamp}" +"%T")
 
 JobStartTimeInSec=$(date -d "${StartDateWithTimStame}" +"%s");
+
+#rm -f $(ls -1t logs/Populate_AGL_NPI_PROJECT_D* | tail -n +10)
+#logFile="Populate_AGL_NPI_PROJECT_D_$(date +%d%m%y%H%M%S)".log
+#exec > logs/$logFile 2>&1
+#echo "Log: Executing Job : $(date +date +%b" "%d" "%Y" "%H":"%M":"%S)"
+
+#hive -f /users/hdpcsc/CSCLIB/HiveQueries/Populate_AGL_NPI_PROJECT_D.hql
+#hive -f ${HiveQueries}/Populate_AGL_NPI_PROJECT_D.hql
+
+hive -e 'select count(1) from csclibrary.AGL_NPI_PROJECT_D';
+
+EndDateWithTimeStamp=`date`
+JobRefreshEndTime=$(date -d "${EndDateWithTimeStamp}" +"%T");
 JobEndTimeInSec=$(date -d "${EndDateWithTimeStamp}" +"%s");
 
-JobElapsecdTime=`expr $(expr $(expr $( expr $(date -d "${EndDateWithTimeStamp}" +"%s") - $(date -d "${StartDateWithTimStame}" +"%s"))) / 60) / 60`
+JobElapsecdTime=`expr $(expr $(expr $(expr $( expr $(date -d "${EndDateWithTimeStamp}" +"%s") - $(date -d "${StartDateWithTimStame}" +"%s"))) / 60) / 60) / 60`
 
-echo "Job Start Date with time stamo="$StartDateWithTimStamp
-echo "Job End Date with time stamo="$EndDateWithTimeStamp
+#echo "Job Start Date with time stamp="$StartDateWithTimStamp
+#echo "Job End Date with time stamp="$EndDateWithTimeStamp
+echo "Job Start date="$JobRefreshDate
+echo "Job Start Time="$JobRefreshStartTime
+echo "JOb End Time="$JobRefreshEndTime
 
-echo "JobStartTimeInSec="$JobStartTimeInSec
-echo "JobEndTimeInSec="$JobEndTimeInSec
+#echo "JobStartTimeInSec="$JobStartTimeInSec
+#echo "JobEndTimeInSec="$JobEndTimeInSec
 echo "Job Elapsed Time="$JobElapsecdTime
+
+
+ExitCode=`echo $?`
+if [ "$ExitCode" -eq 0 ]; then
+JobStatus="Success"
+echo "Success"
+#echo "COMMON-PRODUCTION - COMMON Job Populate_AGL_NPI_PROJECT_D  " | mail -s "COMMON-PRODUCTION - COMMON Job Populate_AGL_NPI_PROJECT_D is Successful...." pbhumire@cisco.com,rsargu@cisco.com,sc_disti_job_monitoring@cisco.com
+else
+JobStatus="Failed"
+echo "Failure"
+#echo "COMMON-PRODUCTION - COMMON Job Populate_AGL_NPI_PROJECT_D " | mail -s "COMMON-PRODUCTION - COMMON Job Populate_AGL_NPI_PROJECT_D Failed ****" pbhumire@cisco.com,rsargu@cisco.com,sc_disti_job_monitoring@cisco.com
+
+return $exitcode
+
+fi
+
