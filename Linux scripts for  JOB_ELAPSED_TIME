@@ -1,37 +1,32 @@
-#!/bin/bash -x
+:#!/bin/bash -x
 
+JobName=Populate_AGL_NPI_PROJECT_D.hql
 StartDateWithTimStamp=`date`
 JobRefreshDate=$(date -d "${StartDateWithTimStamp}" +"%m-%d-%Y")
 JobRefreshStartTime=$(date -d "${StartDateWithTimStamp}" +"%T")
-
 JobStartTimeInSec=$(date -d "${StartDateWithTimStame}" +"%s");
 
 #rm -f $(ls -1t logs/Populate_AGL_NPI_PROJECT_D* | tail -n +10)
-#logFile="Populate_AGL_NPI_PROJECT_D_$(date +%d%m%y%H%M%S)".log
+logFile="Populate_AGL_NPI_PROJECT_D_$(date +%d%m%y%H%M%S)".log
 #exec > logs/$logFile 2>&1
 #echo "Log: Executing Job : $(date +date +%b" "%d" "%Y" "%H":"%M":"%S)"
 
+IFS="$(date +%d%m%y%H%M%S)" read -ra FileNameSplit <<< "${logFile}"
+echo "${FileNameSplit[0]::-1}"
+JobName=${FileNameSplit[0]}::-1}
+
 #hive -f /users/hdpcsc/CSCLIB/HiveQueries/Populate_AGL_NPI_PROJECT_D.hql
+
 #hive -f ${HiveQueries}/Populate_AGL_NPI_PROJECT_D.hql
 
-hive -e 'select count(1) from csclibrary.AGL_NPI_PROJECT_D';
+#hive -e 'select count(1) from csclibrary.AGL_NPI_PROJECT_D';
+
+hive  -e "INSERT INTO TABLE CSCLIBRARY.CSCLIBRARY_TIDAL_JOB_STATUS VALUES ('$JobRefreshDate','$JobRefreshStartTime','$JobRefreshEndTime','$JobElapsecdTime','$JobStatus')";
 
 EndDateWithTimeStamp=`date`
 JobRefreshEndTime=$(date -d "${EndDateWithTimeStamp}" +"%T");
 JobEndTimeInSec=$(date -d "${EndDateWithTimeStamp}" +"%s");
-
 JobElapsecdTime=`expr $(expr $(expr $(expr $( expr $(date -d "${EndDateWithTimeStamp}" +"%s") - $(date -d "${StartDateWithTimStame}" +"%s"))) / 60) / 60) / 60`
-
-#echo "Job Start Date with time stamp="$StartDateWithTimStamp
-#echo "Job End Date with time stamp="$EndDateWithTimeStamp
-echo "Job Start date="$JobRefreshDate
-echo "Job Start Time="$JobRefreshStartTime
-echo "JOb End Time="$JobRefreshEndTime
-
-#echo "JobStartTimeInSec="$JobStartTimeInSec
-#echo "JobEndTimeInSec="$JobEndTimeInSec
-echo "Job Elapsed Time="$JobElapsecdTime
-
 
 ExitCode=`echo $?`
 if [ "$ExitCode" -eq 0 ]; then
@@ -47,4 +42,5 @@ return $exitcode
 
 fi
 echo "Job staus="$JobStatus
-hive  -e "INSERT INTO TABLE CSCLIBRARY.CSCLIBRARY_TIDAL_JOB_STATUS VALUES ('Populate_AGL_NPI_PROJECT_D.hql','$JobRefreshDate','$JobRefreshStartTime','$JobRefreshEndTime','$JobElapsecdTime','$JobStatus')";
+hive  -e "INSERT INTO TABLE CSCLIBRARY.CSCLIBRARY_TIDAL_JOB_STATUS VALUES ('$JobName','$JobRefreshDate','$JobRefreshStartTime','$JobRefreshEndTime','$JobElapsecdTime','$JobStatus')";
+#hive  -e "INSERT INTO TABLE CSCLIBRARY.CSCLIBRARY_TIDAL_JOB_STATUS VALUES ('Populate_AGL_NPI_PROJECT_D.hql','$JobRefreshDate','$JobRefreshStartTime','$JobRefreshEndTime','$JobElapsecdTime','$JobStatus')";
