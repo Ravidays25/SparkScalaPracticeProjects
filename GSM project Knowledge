@@ -1,0 +1,430 @@
+linux date-->https://www.cyberciti.biz/faq/linux-unix-formatting-dates-for-display/
+vinod
+=====
+nohup hive --hiveconf tez.am.resource.memory.mb=6144 -f script.hql>script.log &
+
+SET hive.execution.engine=tez;
+SET hive.exec.parallel=true;
+--SET mapred.reduce.child.java.opts=-Xmx6400m;
+--SET mapred.map.child.java.opts=-Xmx6400m;
+set mapred.map.child.java.opts= -Xmx15000m;
+set mapred.reduce.child.java.opts= -Xmx15000m;
+set mapreduce.map.java.opts= -Xmx4096m;
+set mapreduce.reduce.java.opts= -Xmx4096m;
+set mapreduce.map.memory.mb=6144;
+set mapreduce.reduce.memory.mb=6144;
+set hive.exec.tmp.maprfsvolume=false;
+set hive.auto.convert.join=true;
+set hive.exec.dynamic.partition=true;
+set hive.exec.dynamic.partition.mode=nonstrict;
+set hive.exec.max.dynamic.partitions.pernode=1000;
+set hive.enforce.bucketing=true;
+set tez.am.resource.memory.mb=6144;
+set hive.exec.orc.split.strategy=BI;
+set hive.vectorized.execution.enabled=false;
+set hive.vectorized.execution.reduce.enabled=false;
+set hive.tez.container.size=10240;
+
+ACE
+====
+'u:hdpcsclib | u:hdpcsc | u:hdpcscgsm | u:hdpcscmk | u:hdpcscro | u:hdpdisti | u:hdpfreight | u:hdppcam | u:hdppure | u:hdpscds | u:hdpsndbx68'
+Also has to give csclibrary.db access to -->hdpeno
+
+To run job in Background and write into log file with execution time
+--------------------------------------------------------------------
+nohup hive -f /users/hdpcsclib/CSCLIB/HiveQueries/Populate_PEOPLE_D.hql > /users/hdpcsclib/CSCLIB/HiveQueries/Populate_PEOPLE_D.log &
+
+.hiverc setup
+-------------
+	SET hive.metastore.warehouse.dir=/app/hdpcsclib/HIVE/WAREHOUSE;
+	SET hive.exec.scratchdir=/app/hdpcsclib/HIVE/TMP;
+
+
+
+MapR
+====
+•	To check if there is an existing MAPR Token File
+	maprlogin print
+•	To create a MAPR token 
+	maprlogin password
+•	To check if the MAPR token is created
+	maprlogin print
+•	To Create WAREHOUSE AND TMP folder to be accessed from HIVE
+	cd /apps/mapr/prod/app/hdpcsclib
+	mkdir HIVE
+	cd HIVE/
+	mkdir WAREHOUSE
+	mkdir TMP
+	pwd-->/apps/mapr/prod/app/hdpcsclib/HIVE
+	ls-->TMP  WAREHOUSE
+
+Once the above steps are completed, You need to go to the home folder (/users/hdpcsclib) , and create a .hiverc file and add the below content
+		SET hive.metastore.warehouse.dir=/app/hdpcsclib/HIVE/WAREHOUSE;
+		SET hive.exec.scratchdir=/app/hdpcsclib/HIVE/TMP;
+	
+
+sh /apps/onboarding_automation/ace_script/hive_ace.sh -u hdpcsclib -a read -p '/app/hdpcscgsm/HIVE/WAREHOUSE/supply_chain_gsm_ssa.db' -c -t -add -e generate
+sh /apps/onboarding_automation/ace_script/hive_ace.sh -u hdpcsclib -a read -p '/app/SupplyChain/HIVE/WAREHOUSE/csclib_data/component_demand_forecast_f' -c -t -add -e generate
+
+/users/hdpcsc/JobsConfig --> ACE script .	
+
+Path: /app/hdpcsclib/HIVE/WAREHOUSE/csclibrary.db
+  readfile: u:hdpcsclib | u:hdpcsc | u:hdpcscgsm | u:hdpcscmk | u:hdpcscro
+  writefile: u:hdpcsclib
+  executefile: u:hdpcsclib | u:hdpcsc | u:hdpcscgsm | u:hdpcscmk | u:hdpcscro
+  readdir: u:hdpcsclib | u:hdpcsc | u:hdpcscgsm | u:hdpcscmk | u:hdpcscro
+  addchild: u:hdpcsclib
+  deletechild: u:hdpcsclib
+  lookupdir: u:hdpcsclib | u:hdpcsc | u:hdpcscgsm | u:hdpcscmk | u:hdpcscro
+  inherit: true
+
+  	
+MapR
+----
+hadoop mfs -setace -R \
+-readfile 'u:hdpcpw | u:hdpcsc | u:hdpcscgsm | u:hdpcscmk | u:hdpcscro | u:hdpcscrr | u:hdpdisti | u:hdpeno | u:hdpfreight | u:hdppcam | u:hdppure | u:hdpscds | u:hdpsndbx68 | u:hdpcsclib'  \
+-writefile 'u:hdpcsc' \
+-executefile 'u:hdpcpw | u:hdpcsc | u:hdpcscgsm | u:hdpcscmk | u:hdpcscro | u:hdpcscrr | u:hdpdisti | u:hdpeno | u:hdpfreight | u:hdppcam | u:hdppure | u:hdpsndbx68 | u:hdpcsclib' \
+-readdir 'u:hdpcpw | u:hdpcsc | u:hdpcscgsm | u:hdpcscmk | u:hdpcscro | u:hdpcscrr | u:hdpdisti | u:hdpeno | u:hdpfreight | u:hdppcam | u:hdppure | u:hdpscds | u:hdpsndbx68 | u:hdpcsclib' \
+-addchild 'u:hdpcsc' \
+-deletechild 'u:hdpcsc' \
+-lookupdir 'u:hdpcpw | u:hdpcsc | u:hdpcscgsm | u:hdpcscmk | u:hdpcscro | u:hdpcscrr | u:hdpdisti | u:hdpeno | u:hdpfreight | u:hdppcam | u:hdppure | u:hdpscds | u:hdpsndbx68 | u:hdpcsclib' \
+'/app/SupplyChain/HIVE/WAREHOUSE/csclib.db' ;
+
+To check the status of the job runs in the backgroud
+----------------------------------------------------
+yarn application -status application_1525266108447_2069320
+
+
+GSM prject knoledge
+-------------------
+GSM have some base tables like (CSCLIB.component_demand_forecast_f(forecast details),CSCLIB.mtl_purchase_receipts_f(po Actuals details)..).
+We have DATA FOUNDATION(INTEGRATED DATA FOUNDATION) tables(like CSCLIB.item_forecast_actuals_f..) on top of Base tables .
+We have AGGREGATION on top of the INTEGRATED DATA FOUNDAITON to build 7 diff views.
+
+granularity level
+-----------------
+
+TG - Technology Group
+BU - Business Unit
+PF - Product Family 
+PID - Product ID 
+CPN - Cisco Part Number
+MPN - Manufacturer Part number
+spl -supplier
+
+
+
+
+Hive Knowledge
+--------------
+cisco node deatils-->https://cisco.jiveon.com/login.jspa?referer=%252Fdocs%252FDOC-501436&hint=
+Tez doc --> https://community.hortonworks.com/articles/14309/demystify-tez-tuning-step-by-step.html
+
+SET hive.exec.parallel=true;
+SET mapreduce.reduce.memory.mb=8192;
+SET mapreduce.map.memory.mb=8192;
+SET mapreduce.map.java.opts= -Xmx6400m;
+SET mapreduce.reduce.java.opts= -Xmx6400m;
+SET mapred.reduce.child.java.opts=-Xmx6000m;
+SET mapred.map.child.java.opts=-Xmx6000m;
+SET hive.auto.convert.join=true;
+SET hive.exec.dynamic.partition=true;
+SET hive.exec.dynamic.partition.mode=nonstrict;
+SET hive.exec.max.dynamic.partitions.pernode=1000;
+SET hive.enforce.bucketing=true;
+
+issue:FAILED: SemanticException [Error 10265]: This command is not allowed on an ACID table csclib.erp_pl_backlog_f_snp with a non-ACID transaction manager. Failed command: INSERT OVERWRITE TABLE csclibrary.ERP_PL_BACKLOG_F_SNP select * from csclib.ERP_PL_BACKLOG_F_SNP
+solution:need to set the below properties.
+
+eval "hive -e 'SET hive.txn.manager=org.apache.hadoop.hive.ql.lockmgr.DbTxnManager'"
+eval "hive -e 'SET hive.support.concurrency=true'"
+eval "hive -e 'SET hive.enforce.bucketing=true'"
+eval "hive -e 'SET hive.exec.dynamic.partition.mode=nonstrict'"
+
+
+
+is this error due to memory ????2018-08-12 04:04:43,675 ERROR [Thread-6] SessionState (SessionState.java:printError(1100)) - Status: Failed
+Vertex failed, vertexName=Reducer 3, vertexId=vertex_1534045677957_7755_1_05, diagnostics=[Task failed, taskId=task_1534045677957_7755_1_05_000000, diagnostics=[TaskAttempt 0 failed, info=[Error: Error while running task ( failure ) : attempt_1534045677957_7755_1_05_000000_0:java.lang.RuntimeException: org.apache.hadoop.hive.ql.metadata.HiveException: Hive Runtime Error while processing row (tag=1) {"key":{"reducesinkkey0":50350.0},"value":{"_col0":18601.0,"_col3":"15500","_col4":"SWITCH","_col5":"SYSTEM","_col6":null,"_col7":null,"_col8":null,"_col9":null,"_col10":null,"_col11":null,"_col12":null,"_col24":"N","_col25":"2010-09-11 20:27:37.0","_col26":"2001-03-28 18:33:57.0","_col29":null,"_col34":null,"_col35":null,"_col36":null,"_col37":null,"_col38":null}}
+
+set hive.exec.tmp.maprfsvolume=false  -->set hive.exec.tmp.maprfsvolume=false;
+
+Vertex did not succeed due to OWN_TASK_FAILURE
+--------------------------------------------
+nohup hive --hiveconf tez.am.resource.memory.mb=6144 -f Populate_ITEM_FORECAST_ACTUALS_F_AUG15_v2.hql>Populate_ITEM_FORECAST_ACTUALS_F_AUG15_v2.log &
+
+--SET hive.execution.engine=mr;
+ SET hive.execution.engine=tez;
+SET hive.exec.parallel=true;
+--SET mapred.reduce.child.java.opts=-Xmx6400m;
+--SET mapred.map.child.java.opts=-Xmx6400m;
+set mapred.map.child.java.opts= -Xmx15000m;
+set mapred.reduce.child.java.opts= -Xmx15000m;
+set mapreduce.map.java.opts= -Xmx4096m;
+set mapreduce.reduce.java.opts= -Xmx4096m;
+set mapreduce.map.memory.mb=6144;
+set mapreduce.reduce.memory.mb=6144;
+set hive.exec.tmp.maprfsvolume=false;
+set hive.auto.convert.join=true;
+set hive.exec.dynamic.partition=true;
+set hive.exec.dynamic.partition.mode=nonstrict;
+set hive.exec.max.dynamic.partitions.pernode=1000;
+set hive.enforce.bucketing=true;
+set tez.am.resource.memory.mb=6144;
+set hive.exec.orc.split.strategy=BI;
+set hive.vectorized.execution.enabled=false;
+set hive.vectorized.execution.reduce.enabled=false;
+set hive.tez.container.size=10240;
+set hive.txn.manager=org.apache.hadoop.hive.ql.lockmgr.DummyTxnManager;
+
+nohup hive --hiveconf tez.am.resource.memory.mb=6144 -f Populate_ITEM_FORECAST_ACTUALS_F_AUG15_v2.hql>Populate_ITEM_FORECAST_ACTUALS_F_AUG15_v2.log &
+
+write output to a file with , delimited
+-------------------------------------
+hive -S -e select * from <table> | sed 's/[\t]/,/g' > local location path;
+
+ex:nohup hive -S -f MTL_PURCHASE_RECEIPTS_F_spend_check.hql | sed 's/[\t]/,/g' >MTL_PURCHASE_RECEIPTS_F_spend_check_records.log &
+
+Finding the localtion of warehouse directory
+--------------------------------------------
+hive -S -e "set" |grep warehouse;
+
+To get the query result with headers
+------------------------------------
+set hive.cli.print.header=true;
+
+To  check the which databsed i have connected in Hive console
+------------------------------------------------------------
+set hive.cli.print.current.db=true
+
+To  check the Detailed Table Information  in Hive console
+----------------------------------------------------------
+desc extended actual_fcst_poc_v01;
+
+To get the data base name and and hdfs/mapr path and owner deatils
+-------------------------------------------------------------------
+describe database <data base name>
+
+To crate new data base
+--------------------
+create DATABASE <database_name>
+
+To create Managed Table
+------------------------
+create table csclib.test_sqoop (HEADER_ID int, LINE_NUMBER int ,ORDERED_ITEM string, ITEM_TYPE_CODE string,LINE_CATEGORY_CODE string)
+TBLPROPERTIES ( 'parquet.compression'='GZIP','serialization.null.format' = 'null');
+
+To Create view
+=================
+create view csclib.item_forecast_actuals_f_v1_view as select * from csclibrary.item_forecast_actuals_f_v1;
+
+create view csclib.item_forecast_actuals_f_v1_view_with_part1 as select * from csclibrary.item_forecast_actuals_f_v1;
+
+CREATE VIEW [IF NOT EXISTS] view_name [(column_name [COMMENT column_comment], ...) ]
+[COMMENT table_comment]
+[PARTITIONED ON (col1, col2, ...)]
+[TBLPROPERTIES ...]
+AS SELECT ...
+
+Altetr the vive table propeties
+==================================
+ALTER TABLE csclibrary.ITEM_CATALOG_GROUPS_D SET TBLPROPERTIES('skip.header.line.count'='0')
+
+
+Insert data into table
+-----------------------
+INSERT OVERWRITE TABLE  csclibrary.test_ranaraha_table5 
+select  supplier_id from csclib.suppliers_d limit 10; 
+
+Insert datea into table
+-----------------------
+INSERT OVERWRITE local DIRECTORY '/hdfs/app/SupplyChain/TestScriptData/component_demand_forecast_f_count'
+row format delimited
+fields terminated by '|'
+select pub_date,count(1) as Record_Count_Week_wise from  csclib.component_demand_forecast_f group by pub_date;
+
+load form the local path
+===========================
+load data local inpath "/users/hdpcsclib/CSCLIB/HiveQueries/CSV_FILES/item_catalog_group_d.csv" OVERWRITE into table CSCLIBRARY.ITEM_CATALOG_GROUPS_D;
+
+
+Alter databse owner 
+-------------------
+ALTER (DATABASE|SCHEMA) database_name SET OWNER [USER|ROLE] user_or_role;--To change the owner at database level..
+ex:-ALTER  database test_ranaraha SET OWNER USER hdpcsclib;
+
+To find the table properties(like table hive/hbase storage location..)
+================================================================
+show create table csclib.item_forecast_actuals_f;
+
+
+Droped and recreated hive external table, but no data shown ?
+-------------------------------------------------------------
+This is because the table you created is a partitioned table. The insert you ran would have created a partition for date_partition='2017-11-16'. When you drop and re-create the table, Hive looses the information about the partition, it only knows about the table.
+
+Run the command below to get hive to re-create the partitions based on the data.
+
+	-->MSCK REPAIR TABLE user_tables.test;
+
+Now you will see the data when you run SELECT.
+
+If you want to know the partitions in the table run the statement below:
+
+SHOW PARTITIONS user_tables.test; 
+Run this before and after MSCK to see the effect.
+
+
+
+
+sqoop knoledge
+================
+sqoop
+====
+sqoop import --connect jdbc:oracle:thin:@ldap://tns-prod.cisco.com:5000/MKWEBSTG,cn=OracleContext,dc=cisco,dc=com --username EQ_ADMIN --password 'Cisco$123' -m1 
+--table EQ_LEAD_DETAIL --hive-import --hive-database mca_misc  --hive-overwrite --hive-table EQ_LEAD_DETAIL			
+		
+sqoop import --connect $connectionString \
+        --connection-param-file /hdfs/app/SupplyChain/sqoop/sqoop.properties  \
+        --driver com.sap.db.jdbc.Driver \
+        --username $userName \
+        --password $pwdFile \
+        --table "$hanaTable" \
+        --hive-overwrite  \
+        --m 1 \
+        --hive-table $hiveTable \
+        --hive-drop-import-delims \
+        --where "$dataFilter" \
+        --hive-database $hiveSchema \
+        --hcatalog-database $hiveSchema \
+        --hcatalog-table $hiveTable \
+        --delete-target-dir
+
+
+
+
+Linux Knowledge and commands
+=============================
+/bin/sh -->(representation of Bourne Shell.
+/bin/bash -->BASH-->Bourne Again SHell.(It was written by Steve Bourne as a replacement to the original Bourne Shell(/bin/sh) )
+
+BASH vs DOS
+------------
+1.BASH commands are case sensitive while DOS commands are not;
+2.DOS follows a convention in naming files, which is 8 character file name followed by a dot and 3 characters for the extension. BASH follows no such convention.
+3.Under BASH, / character is a directory separator and \ acts as an escape character. Under DOS, / serves as a command argument delimiter and \ is the directory separator
+
+CLI-->CLI is short for Command Line Interface
+
+find out how much memory Linux is using
+---------------------------------------
+free - mh -->'it shows you information about the machine's memory. This includes physical memory (RAM).swap as well as the shared memory and buffers used by the kernal.
+top -->top command displays processor activity of your Linux box and also displays tasks managed by kernel in real-time.It’ll show processor and memory are being used 
+top -u hdpcsclib-->Specific User Process.
+ps-->shows you what processes (programs) you have running.
+w-->combined to give a comprehensive system usage summary.
+
+
+maximum length for a filename under Linux
+-----------------------------------------
+filename can have a maximum of 255 characters
+
+wc -->(word count) command in Unix/Linux 
+wc -l : Prints the number of lines in a file.
+wc -w : prints the number of words in a file.
+wc -c : Displays the count of bytes in a file.
+wc -m : prints the count of characters from a file.
+wc -L : prints only the length of the longest line in a file.
+
+vi Editor
+--------
+i--Insert at cursor (goes into insert mode)
+a--Write after cursor (goes into insert mode)
+A--Write at the end of line (goes into insert mode)
+ESC--Terminate insert mode
+u--Undo last change
+U--Undo all changes to the entire line
+o--Open a new line (goes into insert mode)
+dd --Delete line
+3dd--Delete 3 lines.
+D--Delete contents of line after the cursor
+C--Delete contents of a line after the cursor and insert new text. Press ESC key to end insertion.
+dw--Delete word
+4dw--Delete 4 words
+cw--Change word
+x--Delete character at the cursor
+r--Replace character
+R--Overwrite characters from cursor onward
+s--Substitute one character under cursor continue to insert
+S--Substitute entire line and begin to insert at the beginning of the line
+~--Change case of individual character
+k--Move cursor up
+j--Move cursor down
+h--Move cursor left
+l--Move cursor right
+Shift+zz--Save the file and quit
+:w--Save the file but keep it open
+:q--Quit without saving
+:wq--Save the file and quit
+
+disc usage:
+---------
+du -h /users/hdpcsc | grep '[0-9\.]\+G'
+
+cmp file1.txt file2.txt -->To compare 2 files.
+cmp -i 10 file1.txt file2.txt-->To skip a particular number of initial bytes from both the files.
+cmp -i 10:12 file1.txt file2.txt -->it allows us to input the number of bytes we want to skip from both the files separately.
+$cmp -s file1.txt file.txt -->(suppress the output)this gives an exit value of 0 if the files are identical, a value of 1 if different, or a value of 2 if an error message occurs.
+cmp -n 50 file1.txt file2.txt -->This option allows you to limit the number of bytes you want to compare.
+
+head -n20 input.txt --> To print the first 20 line of the file,
+
+tail -n20 input.txt --> To print the last 20 line of the file.
+
+sed -n -e '10,100p' input.txt > output.txt -->to print the lines from 10 to 100.
+
+find . -name 'file1.txt' -->To find the file1.txt from current directory
+find . -name 'file1*' -type f -->To find the file1 (if file1 is file) file (f) from current directory
+find . -name 'file1' -type d -->-->To find the file1 directory(id file1 is directory) (f) from current directory
+
+
+grep “linux” index.html --> To search for a string “linux” in a file.
+grep -i “linux” index.html-->To Insensitive case search with grep -i.
+grep -n “word*” file.txt-->To Displaying the line numbers.
+grep -r linux /etc/--> To search the pattern recursively.
+grep -c 'test' /home/example/test.txt -->To Counting the lines when words match.
+
+ 
+vlookup
+======
+=(VLOOKUP(A113,'new dinst 4 clm'!A:A,1,0)=A113)=(VLOOKUP(B113,'new dinst 4 clm'!B:B,1,0)=B113)=(VLOOKUP(C113,'new dinst 4 clm'!C:C,1,0)=C113)
+
+Excel concat sample example
+----------------------------
+="echo """&A1&" STARTED ""   hive -e ' INSERT OVERWRITE TABLE  ${hiveconf:CSCLIBDB}.COMPONENT_DEMAND_FORECAST_F   select * from ${hiveconf:OLD_CSCLIBDB}."&A1&" ';   echo """&A1&""""
+
+
+my github url --> https://github.com/Ravidays25/SparkScalaPracticeProjects
+
+
+shell script knowledge
+=====================
+To find the all taables row count 
+--------------------------------
+tables.txt
+========
+AGL_NPI_PROJECT_D
+BUSINESS_ENTITY_D
+
+count_row.sh
+============
+while IFS='' read -r line || [[ -n "$line" ]];
+do
+echo ""
+echo ""
+echo ""
+echo "Counting the table : $line"
+eval "hive -e 'select count(*) from $line'"
+done < "$1"
+
+===
+./count_row.sh tables.txt > row.txt
