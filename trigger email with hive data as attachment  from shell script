@@ -1,5 +1,3 @@
-
-hive -e 'set hive.cli.print.header=true;select * from  csclibrary.csclibrary_tidal_job_status' | sed 's/[\t]/,/g'> /hdfs/app/hdpcsclib/TidalJobStatusReportExport/csclibrary_tidal_job_status.csv
+hive -e "set hive.cli.print.header=true;select * from  csclibrary.csclibrary_tidal_job_status where job_start_date='09-28-2018'" | sed 's/[\t]/,/g'> /hdfs/app/hdpcsclib/TidalJobStatusReportExport/csclibrary_tidal_job_status.csv
 
 echo "Test export the data ::  " | mail  -a /hdfs/app/hdpcsclib/TidalJobStatusReportExport/csclibrary_tidal_job_status.csv -s "Test export the data " ranaraha@cisco.com
-
