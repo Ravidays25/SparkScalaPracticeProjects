@@ -26,7 +26,8 @@ hive  -e "INSERT INTO TABLE CSCLIBRARY.CSCLIBRARY_TIDAL_JOB_STATUS VALUES ('$Job
 EndDateWithTimeStamp=`date`
 JobRefreshEndTime=$(date -d "${EndDateWithTimeStamp}" +"%T");
 JobEndTimeInSec=$(date -d "${EndDateWithTimeStamp}" +"%s");
-JobElapsecdTime=`expr $(expr $(expr $(expr $( expr $(date -d "${EndDateWithTimeStamp}" +"%s") - $(date -d "${StartDateWithTimStame}" +"%s"))) / 60) / 60) / 60`
+#JobElapsecdTime=`expr $(expr $(date -d $JobRefreshEndTime +"%s") - $(date -d $JobRefreshStartTime +"%s")) / 60`
+JobElapsecdTime=`expr $(date -d $JobRefreshEndTime +"%s") - $(date -d $JobRefreshStartTime +"%s")`
 
 ExitCode=`echo $?`
 if [ "$ExitCode" -eq 0 ]; then
