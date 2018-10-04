@@ -22,7 +22,7 @@ JobStartTimeInSec=$(date -d "${StartDateWithTimStame}" +"%s");
 #Step2 Start
 IFS="$(date +%d%m%y%H%M%S)" read -ra FileNameSplit <<< "${logFile}"
 echo "${FileNameSplit[0]}"
-JobName=${FileNameSplit[0] :: -1}
+JobName=${FileNameSplit[0] :: -1}.hql
 
 EndDateWithTimeStamp=date
 JobRefreshEndTime=$(date -d "${EndDateWithTimeStamp}" +"%T");
@@ -39,7 +39,7 @@ JobStatus="Failed"
 #Step4 End
 
 #Step5 Start
-hive  -e "INSERT INTO TABLE CSCLIBRARY.CSCLIBRARY_TIDAL_JOB_STATUS VALUES ('Populate_AGL_NPI_PROJECT_D.hql','$JobRefreshDate','$JobRefreshStartTime','$JobRefreshEndTime','$JobElapsecdTime','$JobStatus')";
+hive  -e "INSERT INTO TABLE CSCLIBRARY.CSCLIBRARY_TIDAL_JOB_STATUS VALUES ('$JobName','$JobRefreshDate','$JobRefreshStartTime','$JobRefreshEndTime','$JobElapsecdTime','$JobStatus')";
 #Step5 End
 
 
