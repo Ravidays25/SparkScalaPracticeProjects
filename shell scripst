@@ -1,0 +1,52 @@
+CREATE TABLE csclibrary.csclibrary_tidal_job_status(
+  job_name string, 
+  job_execution_date string, 
+  job_start_time string, 
+  job_end_time string, 
+  job_elapsed_time string, 
+  job_status string)
+STORED AS parquet 
+TBLPROPERTIES ( 'parquet.compression'='GZIP','serialization.null.format' = 'null');
+
+
+--drop table csclibrary.csclibrary_tidal_job_status;
+
+#Step1 Start
+
+StartDateWithTimStamp=date
+JobRefreshDate=$(date -d "${StartDateWithTimStamp}" +"%m-%d-%Y")
+JobRefreshStartTime=$(date -d "${StartDateWithTimStamp}" +"%T")
+JobStartTimeInSec=$(date -d "${StartDateWithTimStame}" +"%s");
+#Step1 End
+
+#Step2 Start
+IFS="$(date +%d%m%y%H%M%S)" read -ra FileNameSplit <<< "${logFile}"
+echo "${FileNameSplit[0]}"
+JobName=${FileNameSplit[0] :: -1}
+
+EndDateWithTimeStamp=date
+JobRefreshEndTime=$(date -d "${EndDateWithTimeStamp}" +"%T");
+JobEndTimeInSec=$(date -d "${EndDateWithTimeStamp}" +"%s");
+JobElapsecdTime=expr $(expr $(expr $(expr $( expr $(date -d "${EndDateWithTimeStamp}" +"%s") - $(date -d "${StartDateWithTimStame}" +"%s"))) / 60) / 60) / 60
+#Step2 End
+
+#Step3 Start
+JobStatus="Success"
+#Step3 End
+
+#Step4 Start
+JobStatus="Failed"
+#Step4 End
+
+#Step5 Start
+hive  -e "INSERT INTO TABLE CSCLIBRARY.CSCLIBRARY_TIDAL_JOB_STATUS VALUES ('Populate_AGL_NPI_PROJECT_D.hql','$JobRefreshDate','$JobRefreshStartTime','$JobRefreshEndTime','$JobElapsecdTime','$JobStatus')";
+#Step5 End
+
+
+#Step6 Start
+sh ./Email_Trigger.sh
+#Step6 End
+
+
+
+
